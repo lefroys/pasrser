@@ -546,8 +546,8 @@ def getBuilds():
         flag = 1 # где 1 - кулер, 2 - БП , 3 - HDD 4 - mother, 5 - ОЗУ, 6 - CPU + Video
 
         k=100
-
-        s=2
+        
+        testtest=1000
 
 
         while (resultprice>generalprice):
