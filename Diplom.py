@@ -543,9 +543,10 @@ def getBuilds():
         maxMotherPrice = generalprice*0.15
         minMotherPrice = generalprice*0.1
 
-        flag = 1 # где 1 - кулер, 2 - БП , 3 - HDD 4 - mother, 5 - ОЗУ, 6 - CPU + Video
+        #flag = 1 # где 1 - кулер, 2 - БП , 3 - HDD 4 - mother, 5 - ОЗУ, 6 - CPU + Video
 
-        k=0 # new изменения
+        k=2 # new изменения
+        s=3
 
 
 
