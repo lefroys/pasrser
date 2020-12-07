@@ -545,7 +545,7 @@ def getBuilds():
 
         flag = 1 # где 1 - кулер, 2 - БП , 3 - HDD 4 - mother, 5 - ОЗУ, 6 - CPU + Video
 
-        k=0
+        k=1
 
         s=2
 
