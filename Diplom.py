@@ -547,7 +547,6 @@ def getBuilds():
 
         k=0
 
-        megatest=1000
 
         while (resultprice>generalprice):
             resultprice = 0
