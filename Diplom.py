@@ -1,9 +1,10 @@
-
+import time
 import re
 import requests
 from bs4 import BeautifulSoup as BS
 import psycopg2
-import time
+from fake_headers import Headers
+from requests.exceptions import TooManyRedirects
 
 class Base:     # базовый класс
 
@@ -20,28 +21,73 @@ class Base:     # базовый класс
 
         self.session = requests.Session()
 
-        # proxylist = {
-        #     'http': '211.137.52.158:8080'           # днс ругается из-за ip видимо, можно юзать прокси + http
-        # }
+        proxylist = {
+            #'https' : 'https://mKgQot:pBe45f@213.166.74.36:9373',
+            'https' : '192.168.1.108:8888',
+            'http':'134.209.29.120:8080'
+            #'http': '91.202.240.208:51678'
+                      }
 
-        self.session.trust_env = False               # если днс ругается то использовать в связке с прокси
+        header = Headers(
+            browser="chrome",  # Generate only Chrome UA
+            os="win",  # Generate ony Windows platform
+            headers=False  # generate misc headers
+        )
+
+        genHeaders = header.generate()      # генерация заголовков
+        genHeaders.update({'Host': 'www.dns-shop.ru'})
+
+
+
+
+        #self.session.headers = genHeaders
+        self.session.trust_env = False
 
         r = self.session.get(
-            'http://www.dns-shop.ru/catalog/' + validateID + '/' + validateName + '/?p=1&order=1&groupBy=none&stock=2',
-            headers={'User-Agent': 'Chrome/86.0.4240.75'})
+            'https://www.dns-shop.ru/catalog/' + validateID + '/' + validateName + '/?p=1',allow_redirects=False,headers={'User-Agent': 'Chrome/70.0.3538.77'})
 
+
+
+
+        #self.session.headers['Cookie'] = r.headers['Set-Cookie']
+
+
+        # r = self.session.get(
+        #     'https://www.dns-shop.ru/catalog/' + validateID + '/' + validateName + '/?p=1', allow_redirects=False,headers={'User-Agent': 'Chrome/70.0.3538.77','Cookie':r.headers['Set-Cookie']})
+
+
+        # cookieDict = self.session.cookies.get_dict()
+        # cookieResult = ''
+        #
+        # for k, v in cookieDict.items():
+        #     cookieResult += k + '=' + v + '; '
+
+
+
+        #self.session.headers['Cookie'] = cookieResult
+
+        print (self.session.headers)
+
+
+
+        #r = self.session.get('https://httpbin.org/response-headers',proxies=proxylist)
 
         self.html = BS(r.content, 'html.parser')
-
 
 
         self.countPages = int(self.html.select('.pagination-widget__pages > li')[-1]['data-page-number'])  # Количество страниц продуктов
 
         self.CSRF = self.html.find(attrs={"name": "csrf-token"})['content']
 
+
+
         for j in range(1, self.countPages + 1):  # перебор страниц комплектующих
 
-            r = self.session.get('https://www.dns-shop.ru/catalog/' + validateID + '/' + validateName + '/?p=' + str(j) + '&order=1&groupBy=none&stock=2', headers={'User-Agent': 'Chrome/70.0.3538.77'})
+
+            r = self.session.get('https://www.dns-shop.ru/catalog/' + validateID + '/' + validateName + '/?p=' + str(j), allow_redirects=False, headers={'User-Agent': 'Chrome/70.0.3538.77'})
+
+            print ('Запрос ',j)
+
             self.html = BS(r.content, 'html.parser')
 
             # Парсер названий продуктов
@@ -49,14 +95,22 @@ class Base:     # базовый класс
                 result = el.select('.product-info__title-link > a')
                 self.productName.append(result[0].text)
 
+
+
             self.getPrice()
             self.getAdditional()
             self.getdnsRate()
+
+            # self.session.headers.clear()    # пересборка хедеров
+            # self.session.headers = genHeaders
+            # self.session.headers['Cookie'] = cookieResult
 
         self.makeSQL()
 
 
     def makeSQL(self):
+
+
 
         self.conn = psycopg2.connect(dbname='postgres', user='postgres',
                                 password='29886622ss', host='localhost')
@@ -76,8 +130,6 @@ class Base:     # базовый класс
 
 
         d = {}  # dict словарь
-
-
         for i in range(len(self.productName)):
             for j in range(1, len(rowName)):
                 d.update({rowName[j]: self.lineName[j - 1][i]})
@@ -92,9 +144,15 @@ class Base:     # базовый класс
 
         self.conn.commit()
 
+
     def getPrice(self):  # функция формирования цен
+
+
+
         priceID = []
         productID = []
+
+
 
         for i in self.html.select('.n-catalog-product__price > span'):
             priceID.append(i['id'])
@@ -107,26 +165,42 @@ class Base:     # базовый класс
         for i in range(len(priceID)):
 
             if (i == len(priceID) - 1):
-                datatest += '{"id":"' + str(priceID[i]) + '","data":{"productId":"' + str(
-                    productID[i - 1]) + '","action":"init"}}'
+                datatest += '{"id":"' + str(priceID[i]) + '","data":{"id":"' + str(
+                    productID[i - 1]) + '"}}'
             else:
-                datatest += '{"id":"' + str(priceID[i]) + '","data":{"productId":"' + str(
-                    productID[i]) + '","action":"init"}},'
+                datatest += '{"id":"' + str(priceID[i]) + '","data":{"id":"' + str(
+                    productID[i]) + '"}},'
 
         datatest += ']}'
 
-        r = self.session.post('https://www.dns-shop.ru/ajax-state/min-price/', headers={'User-Agent': 'Chrome/70.0.3538.77',
+
+
+        # self.session.headers['X-Requested-With'] = 'XMLHttpRequest'
+        # self.session.headers['content-type'] = 'application/x-www-form-urlencoded'
+        # self.session.headers['X-CSRF-Token'] = self.CSRF
+        # self.session.headers['Referer'] = 'https://www.dns-shop.ru/catalog/17a899cd16404e77/processory/no-referrer'
+        # self.session.headers['Content-Length'] = str(len(datatest))
+        r = self.session.post('https://www.dns-shop.ru/ajax-state/min-price/?cityId=128',headers={'User-Agent': 'Chrome/70.0.3538.77',
                                                                                    'X-Requested-With': 'XMLHttpRequest',
                                                                                    'content-type': 'application/x-www-form-urlencoded',
                                                                                    'X-CSRF-Token': self.CSRF}, data=datatest)
 
+
+
+
+        print (r.text)
         for i in range(len(priceID)):
             self.price.append(r.json()['data']['states'][i]['data']['current'])
+
+
 
     def getAdditional(self):
         pass
 
     def getbenchRating(self):      # метод для парсинга рейтинга комплектующих
+
+
+
         rate = []
 
         r = self.session.get(
@@ -162,7 +236,11 @@ class Base:     # базовый класс
 
         self.conn.commit()
 
+
+
     def getdnsRate(self):
+
+
 
         rating = []
 
@@ -180,6 +258,8 @@ class Base:     # базовый класс
 
 
             self.dnsrate.append(round(dnsrate))
+
+
 
 class CPU(Base):
     def __init__(self, validateName, validateID, tableName,urlrate):
@@ -209,6 +289,8 @@ class CPU(Base):
             self.SocketName.append(matchSocket.group()[1:-1])
             self.PowerName.append(matchPower.group()[2:-2])
             self.CountCPUs.append(matchCountCpus.group()[2:])
+
+
 
 class Mother(Base):
     def __init__(self, validateName, validateID, tableName):
@@ -705,7 +787,7 @@ def getBuilds():
 
 
 
-    
+
 
     # for i in range(generalprice,generalprice+15000,500):
     #     componentprice = {'cpuprice':int(i*0.22),'videoprice':int(i*0.34),'motherprice':int(i*0.11),'ramprice':int(i*0.095),
@@ -762,14 +844,14 @@ def getBuilds():
 
 if __name__ == "__main__":
 
-    getBuilds()
+    #getBuilds()
 
-    #CPU = CPU("processory", "17a899cd16404e77","cpu","cpubenchmark.net/cpu_list.php#single-cpu")
-    # CPU.getbenchRating()
+    CPU = CPU("processory", "17a899cd16404e77","cpu","cpubenchmark.net/cpu_list.php#single-cpu")
+    CPU.getbenchRating()
     # Video = Video("videokarty", "17a89aab16404e77","video","videocardbenchmark.net/gpu_list.php")
     # Video.getbenchRating()
-    #RAM = RAM("operativnaya-pamyat-dimm", "17a89a3916404e77","ram")
-    #Mother = Mother("materinskie-platy", "17a89a0416404e77","mother")
+    # RAM = RAM("operativnaya-pamyat-dimm", "17a89a3916404e77","ram")
+    # Mother = Mother("materinskie-platy", "17a89a0416404e77","mother")
     # Block = Block("bloki-pitaniya", "17a89c2216404e77","block")
     # SSD = SSD("ssd-nakopiteli", "8a9ddfba20724e77","ssd")
     # HDD = HDD("zhestkie-diski-35", "17a8914916404e77","hdd")
