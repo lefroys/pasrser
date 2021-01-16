@@ -629,181 +629,115 @@ def getBuilds():
         k=0
 
 
-        while (resultprice>generalprice):       # пока не будет найдена искомая стоимость
-            resultprice = 0             # результирующая стоимость сборки
 
-            ############### Поиск ЦПУ
-            max = 0     # для поиска максимального по benchrating комплектующего (далее аналогично)
+        resultprice = 0             # результирующая стоимость сборки
 
-
-            for i in range(len(cpu_name)):
-                if (cpu_bench[i]>max and cpu_price[i]<maxCpuPrice and cpu_price[i]>minCpuPrice):
-                    max = cpu_bench[i]
-                    cpuIndex = i
+        ############### Поиск ЦПУ
+        max = 0     # для поиска максимального по benchrating комплектующего (далее аналогично)
 
 
-
-            resultbuilds.append([cpu_name[cpuIndex],cpu_socket[cpuIndex],cpu_price[cpuIndex]])
-            resultprice+=cpu_price[cpuIndex]
-
-            if flag==6:                                     # если удешевляем 1 - кулер
-                if maxCpuPrice>minCpuPrice+100:       # удешевление кулера на 100, пока
-                    maxCpuPrice -= 100
-                    flag=1
-
-                else:
-                    maxCpuPrice=minCpuPrice
-
-            ################### Поиск Видеокарты
-            max=0
-
-
-            for i in range(len(video_name)):
-                if (video_bench[i] != None and video_bench[i]>max and video_price[i]<maxVideoPrice and video_price[i]>minVideoPrice):
-                    max = video_bench[i]
-                    videoIndex = i
-            resultbuilds[k].extend((video_name[videoIndex],video_price[videoIndex]))
-            resultprice+=video_price[videoIndex]
-
-            if flag==6:                                     # если удешевляем 1 - кулер
-                if maxVideoPrice>minVideoPrice+100:       # удешевление кулера на 100, пока
-                    maxVideoPrice -= 100
-
-                else:
-                    maxVideoPrice=minVideoPrice
-
-
-            ################### Поиск Материнки
-            max = 0
-            motherIndex = 0
-
-            for i in range(len(mother_name)):
-
-                if (resultbuilds[k][1]==mother_socket[i] and mother_dnsrate[i]>max and mother_price[i]<=maxMotherPrice and mother_price[i]>=minMotherPrice):
-                    max = mother_dnsrate[i]
-                    motherIndex=i
-
-            resultbuilds[k].extend((mother_name[motherIndex], mother_ramname[motherIndex], mother_rampower[motherIndex],
-                                    mother_price[motherIndex]))
-            resultprice += mother_price[motherIndex]
-
-            # if motherIndex !=0:
-            #     resultbuilds[k].extend((mother_name[motherIndex],mother_ramname[motherIndex],mother_rampower[motherIndex],mother_price[motherIndex]))
-            #     resultprice+=mother_price[motherIndex]
-            # else:
-            #     resultbuilds.clear()
-            #     break
-
-
-            if flag==4:                                     # если удешевляем 1 - кулер
-                if maxMotherPrice>minMotherPrice+100:       # удешевление кулера на 100, пока
-                    maxMotherPrice -= 100
-                else:
-                    maxMotherPrice=minMotherPrice
-                    flag=5
-
-            #################### Поиск ОЗУ
-            max=0
-            ramIndex = 0
-
-            for i in range(len(ram_name)):
-
-                if ram_socket[i]==resultbuilds[k][6] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ram_power[i]<=resultbuilds[k][7] and ((ram_count[i]>=2 and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_price[i]*2<=maxRamPrice)):
-                    max = ram_dnsrating[i]
-                    ramIndex = i
-
-
-            resultbuilds[k].extend((ram_name[ramIndex], ram_count[ramIndex], ram_price[ramIndex]))
-            resultprice += ram_price[ramIndex]
-
-            # if ramIndex!=0:
-            #     resultbuilds[k].extend((ram_name[ramIndex],ram_count[ramIndex],ram_price[ramIndex]))
-            #     resultprice+=ram_price[ramIndex]
-            # else:
-            #     resultbuilds.clear()
-            #     break
-
-            if flag==5:                                     # если удешевляем 1 - кулер
-                if maxRamPrice>minRamPrice+100:       # удешевление кулера на 100, пока
-                    maxRamPrice -= 100
-                else:
-                    maxRamPrice=minRamPrice
-                    flag=6
-
-            ###################### Поиск HDD
-            max = 0
-            hddIndex = 0
-
-            for i in range(len(hdd_name)):
-                if (hdd_dnsrating[i] > max and hdd_price[i]<=maxHddPrice and hdd_price[i]>=minHddPrice):
-                    max = hdd_dnsrating[i]
-                    hddIndex = i
-
-            resultbuilds[k].extend((hdd_name[hddIndex], hdd_size[hddIndex], hdd_price[hddIndex]))
-            resultprice+=hdd_price[hddIndex]
-
-            # if hddIndex!=0:
-            #     resultbuilds[k].extend((hdd_name[hddIndex],hdd_size[hddIndex],hdd_price[hddIndex]))
-            #     resultprice+=hdd_price[hddIndex]
-            # else:
-            #     resultbuilds.clear()
-            #     break
-
-
-            if flag==3:                                     # если удешевляем 1 - кулер
-                if maxHddPrice>minHddPrice+100:       # удешевление кулера на 100, пока
-                    maxHddPrice -= 100
-                else:
-                    maxHddPrice=minHddPrice
-                    flag=4
-
-            ####################### Поиск БП
-
-
-            max = 0
-
-            for i in range(len(block_name)):
-                if (block_dnsrating[i] > max and block_price[i]<=maxBlockPrice and block_price[i]>=minBlockPrice):
-                    max = block_dnsrating[i]
-                    blockIndex = i
-
-            resultbuilds[k].extend((block_name[blockIndex],block_power[blockIndex],block_price[blockIndex]))
-            resultprice+=block_price[blockIndex]
-
-            if flag==2:                                     # если удешевляем 1 - кулер
-                if maxBlockPrice>minBlockPrice+100:       # удешевление кулера на 100, пока
-                    maxBlockPrice -= 100
-                else:
-                    maxBlockPrice=minBlockPrice
-                    flag=3
-
-            ######################## Поиск кулера
-
-            max = 0
-
-            for i in range(len(cooler_name)):
-                if (cooler_dnsrating[i] > max and cooler_price[i]<=maxcoolerprice and cooler_price[i]>=mincoolerprice):
-                    max = cooler_dnsrating[i]
-                    coolerIndex = i
-
-            resultbuilds[k].extend((cooler_name[coolerIndex], cooler_watt[coolerIndex], cooler_price[coolerIndex]))
-            resultprice+=cooler_price[coolerIndex]
-
-            if flag==1:                                     # если удешевляем 1 - кулер
-                if maxcoolerprice>mincoolerprice+100:       # удешевление кулера на 100, пока
-                    maxcoolerprice -= 100
-                else:
-                    maxcoolerprice=mincoolerprice
-                    flag=2
+        for i in range(len(cpu_name)):
+            if (cpu_bench[i]>max and cpu_price[i]<maxCpuPrice and cpu_price[i]>minCpuPrice):
+                max = cpu_bench[i]
+                cpuIndex = i
 
 
 
-            resultbuilds[k].append(resultprice)
+        resultbuilds.append([cpu_name[cpuIndex],cpu_socket[cpuIndex],cpu_price[cpuIndex]])
+        resultprice+=cpu_price[cpuIndex]
 
-            print (resultbuilds[k],generalprice,flag)
 
-            #time.sleep(0.5)
-            k += 1
+        ################### Поиск Видеокарты
+        max=0
+
+
+        for i in range(len(video_name)):
+            if (video_bench[i] != None and video_bench[i]>max and video_price[i]<maxVideoPrice and video_price[i]>minVideoPrice):
+                max = video_bench[i]
+                videoIndex = i
+        resultbuilds[k].extend((video_name[videoIndex],video_price[videoIndex]))
+        resultprice+=video_price[videoIndex]
+
+
+
+
+        ################### Поиск Материнки
+        max = 0
+        motherIndex = 0
+
+        for i in range(len(mother_name)):
+
+            if (resultbuilds[k][1]==mother_socket[i] and mother_dnsrate[i]>max and mother_price[i]<=maxMotherPrice and mother_price[i]>=minMotherPrice):
+                max = mother_dnsrate[i]
+                motherIndex=i
+
+        resultbuilds[k].extend((mother_name[motherIndex], mother_ramname[motherIndex], mother_rampower[motherIndex],
+                                mother_price[motherIndex]))
+        resultprice += mother_price[motherIndex]
+
+
+        #################### Поиск ОЗУ
+        max=0
+        ramIndex = 0
+
+        for i in range(len(ram_name)):
+
+            if ram_socket[i]==resultbuilds[k][6] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ram_power[i]<=resultbuilds[k][7] and ((ram_count[i]>=2 and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_price[i]*2<=maxRamPrice)):
+                max = ram_dnsrating[i]
+                ramIndex = i
+
+
+        resultbuilds[k].extend((ram_name[ramIndex], ram_count[ramIndex], ram_price[ramIndex]))
+        resultprice += ram_price[ramIndex]
+
+
+        ###################### Поиск HDD
+        max = 0
+        hddIndex = 0
+
+        for i in range(len(hdd_name)):
+            if (hdd_dnsrating[i] > max and hdd_price[i]<=maxHddPrice and hdd_price[i]>=minHddPrice):
+                max = hdd_dnsrating[i]
+                hddIndex = i
+
+        resultbuilds[k].extend((hdd_name[hddIndex], hdd_size[hddIndex], hdd_price[hddIndex]))
+        resultprice+=hdd_price[hddIndex]
+
+
+
+        ####################### Поиск БП
+
+
+        max = 0
+
+        for i in range(len(block_name)):
+            if (block_dnsrating[i] > max and block_price[i]<=maxBlockPrice and block_price[i]>=minBlockPrice):
+                max = block_dnsrating[i]
+                blockIndex = i
+
+        resultbuilds[k].extend((block_name[blockIndex],block_power[blockIndex],block_price[blockIndex]))
+        resultprice+=block_price[blockIndex]
+
+
+        ######################## Поиск кулера
+
+        max = 0
+
+        for i in range(len(cooler_name)):
+            if (cooler_dnsrating[i] > max and cooler_price[i]<=maxcoolerprice and cooler_price[i]>=mincoolerprice):
+                max = cooler_dnsrating[i]
+                coolerIndex = i
+
+        resultbuilds[k].extend((cooler_name[coolerIndex], cooler_watt[coolerIndex], cooler_price[coolerIndex]))
+        resultprice+=cooler_price[coolerIndex]
+
+  
+        resultbuilds[k].append(resultprice)
+
+        #print (resultbuilds[k],generalprice,flag)
+
+        #time.sleep(0.5)
+        #k += 1
 
 
         print("Итоговая сборка: ",resultbuilds[-1])
