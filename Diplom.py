@@ -199,8 +199,6 @@ class Base:     # базовый класс
 
     def getbenchRating(self):      # метод для парсинга рейтинга комплектующих
 
-
-
         rate = []
 
         r = self.session.get(
@@ -597,44 +595,45 @@ def getBuilds():
 
 
 
-    for searchPrice in range(28000,35000,1000):
+    for generalprice in range(80000,81000,1000):
 
 
         resultbuilds=[]
         resultprice=10000000
-        generalprice = searchPrice
 
-        maxRamPrice = generalprice*0.12
-        minRamPrice = generalprice*0.06
 
-        maxcoolerprice = generalprice*0.03
-        mincoolerprice = generalprice*0.01
+        maxRamPrice = generalprice * 0.12
+        minRamPrice = generalprice * 0.06
 
-        maxVideoPrice = generalprice*0.5
-        minVideoPrice = generalprice*0.31
+        maxcoolerprice = generalprice * 0.03
+        mincoolerprice = generalprice * 0.01
 
-        maxCpuPrice = generalprice*0.26
-        minCpuPrice = generalprice*0.18
+        maxVideoPrice = generalprice * 0.5
+        minVideoPrice = generalprice * 0.29  # было 0.31
 
-        maxHddPrice = generalprice*0.1
-        minHddPrice = generalprice*0.04
+        maxCpuPrice = generalprice * 0.26
+        minCpuPrice = generalprice * 0.09  # было 0.18
 
-        maxBlockPrice = generalprice*0.09
-        minBlockPrice = generalprice*0.04
+        maxHddPrice = generalprice * 0.1
+        minHddPrice = generalprice * 0.04
 
-        maxMotherPrice = generalprice*0.15
-        minMotherPrice = generalprice*0.1
+        maxBlockPrice = generalprice * 0.09
+        minBlockPrice = generalprice * 0.04
+
+        maxMotherPrice = generalprice * 0.15
+        minMotherPrice = generalprice * 0.1
+
 
         flag = 1 # где 1 - кулер, 2 - БП , 3 - HDD 4 - mother, 5 - ОЗУ, 6 - CPU + Video
 
         k=0
 
 
-        while (resultprice>generalprice):
-            resultprice = 0
+        while (resultprice>generalprice):       # пока не будет найдена искомая стоимость
+            resultprice = 0             # результирующая стоимость сборки
 
             ############### Поиск ЦПУ
-            max = 0
+            max = 0     # для поиска максимального по benchrating комплектующего (далее аналогично)
 
 
             for i in range(len(cpu_name)):
@@ -643,12 +642,15 @@ def getBuilds():
                     cpuIndex = i
 
 
+
             resultbuilds.append([cpu_name[cpuIndex],cpu_socket[cpuIndex],cpu_price[cpuIndex]])
             resultprice+=cpu_price[cpuIndex]
 
             if flag==6:                                     # если удешевляем 1 - кулер
                 if maxCpuPrice>minCpuPrice+100:       # удешевление кулера на 100, пока
                     maxCpuPrice -= 100
+                    flag=1
+
                 else:
                     maxCpuPrice=minCpuPrice
 
@@ -666,21 +668,31 @@ def getBuilds():
             if flag==6:                                     # если удешевляем 1 - кулер
                 if maxVideoPrice>minVideoPrice+100:       # удешевление кулера на 100, пока
                     maxVideoPrice -= 100
+
                 else:
                     maxVideoPrice=minVideoPrice
 
 
             ################### Поиск Материнки
             max = 0
-
+            motherIndex = 0
 
             for i in range(len(mother_name)):
+
                 if (resultbuilds[k][1]==mother_socket[i] and mother_dnsrate[i]>max and mother_price[i]<=maxMotherPrice and mother_price[i]>=minMotherPrice):
                     max = mother_dnsrate[i]
                     motherIndex=i
 
-            resultbuilds[k].extend((mother_name[motherIndex],mother_ramname[motherIndex],mother_rampower[motherIndex],mother_price[motherIndex]))
-            resultprice+=mother_price[motherIndex]
+            resultbuilds[k].extend((mother_name[motherIndex], mother_ramname[motherIndex], mother_rampower[motherIndex],
+                                    mother_price[motherIndex]))
+            resultprice += mother_price[motherIndex]
+
+            # if motherIndex !=0:
+            #     resultbuilds[k].extend((mother_name[motherIndex],mother_ramname[motherIndex],mother_rampower[motherIndex],mother_price[motherIndex]))
+            #     resultprice+=mother_price[motherIndex]
+            # else:
+            #     resultbuilds.clear()
+            #     break
 
 
             if flag==4:                                     # если удешевляем 1 - кулер
@@ -692,17 +704,24 @@ def getBuilds():
 
             #################### Поиск ОЗУ
             max=0
-
+            ramIndex = 0
 
             for i in range(len(ram_name)):
+
                 if ram_socket[i]==resultbuilds[k][6] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ram_power[i]<=resultbuilds[k][7] and ((ram_count[i]>=2 and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_price[i]*2<=maxRamPrice)):
                     max = ram_dnsrating[i]
                     ramIndex = i
 
 
+            resultbuilds[k].extend((ram_name[ramIndex], ram_count[ramIndex], ram_price[ramIndex]))
+            resultprice += ram_price[ramIndex]
 
-            resultbuilds[k].extend((ram_name[ramIndex],ram_count[ramIndex],ram_price[ramIndex]))
-            resultprice+=ram_price[ramIndex]
+            # if ramIndex!=0:
+            #     resultbuilds[k].extend((ram_name[ramIndex],ram_count[ramIndex],ram_price[ramIndex]))
+            #     resultprice+=ram_price[ramIndex]
+            # else:
+            #     resultbuilds.clear()
+            #     break
 
             if flag==5:                                     # если удешевляем 1 - кулер
                 if maxRamPrice>minRamPrice+100:       # удешевление кулера на 100, пока
@@ -713,16 +732,22 @@ def getBuilds():
 
             ###################### Поиск HDD
             max = 0
-
+            hddIndex = 0
 
             for i in range(len(hdd_name)):
                 if (hdd_dnsrating[i] > max and hdd_price[i]<=maxHddPrice and hdd_price[i]>=minHddPrice):
                     max = hdd_dnsrating[i]
                     hddIndex = i
 
-
-            resultbuilds[k].extend((hdd_name[hddIndex],hdd_size[hddIndex],hdd_price[hddIndex]))
+            resultbuilds[k].extend((hdd_name[hddIndex], hdd_size[hddIndex], hdd_price[hddIndex]))
             resultprice+=hdd_price[hddIndex]
+
+            # if hddIndex!=0:
+            #     resultbuilds[k].extend((hdd_name[hddIndex],hdd_size[hddIndex],hdd_price[hddIndex]))
+            #     resultprice+=hdd_price[hddIndex]
+            # else:
+            #     resultbuilds.clear()
+            #     break
 
 
             if flag==3:                                     # если удешевляем 1 - кулер
@@ -774,7 +799,8 @@ def getBuilds():
 
 
             resultbuilds[k].append(resultprice)
-            #print (resultbuilds[k])
+
+            print (resultbuilds[k],generalprice,flag)
 
             #time.sleep(0.5)
             k += 1
@@ -789,65 +815,15 @@ def getBuilds():
 
 
 
-    # for i in range(generalprice,generalprice+15000,500):
-    #     componentprice = {'cpuprice':int(i*0.22),'videoprice':int(i*0.34),'motherprice':int(i*0.11),'ramprice':int(i*0.095),
-    #                       'hddprice':int(i*0.07),'ssdprice':int(i*0.05),'coolerprice':int(i*0.03),'blockprice':int(i*0.085)}
-    #
-    #
-    #
-    #     sql = '''
-    #     WITH general as (
-    # SELECT cpu.name "cpuname", cpu.price "cpuprice",mother.name "mothername", mother.price "motherprice",ram.name "ramname",ram.count_ram "countram", ram.price "ramprice",cpu.benchrating "cpubench", mother.dnsrating "motherrating", ram.dnsrating "ramrating"
-    # FROM cpu
-    # JOIN mother ON cpu.socket = mother.socket
-    # JOIN ram ON mother.ram_name = ram.socket where cpu.price < {cpuprice} and mother.price < {motherprice} and ram.price < {ramprice} and ram.count_ram >= 2 and ram.memory>=8 and mother.ram_power>=ram.power),
-    #
-    # cpumax as (
-    # select * from general where cpubench = (select max(cpubench) from general)),
-    #
-    # mothermax as (
-    # select * from cpumax where motherrating = (select max(motherrating) from cpumax)),
-    #
-    # rammax as (
-    # select mothermax.*,hdd.name "hddname", hdd.price "hddprice",hdd.dnsrating "hddrating" from mothermax,hdd where ramrating = (select max(ramrating) from mothermax) and hdd.price < {hddprice}),
-    #
-    # hddmax as (
-    # select rammax.*,ssd.name "ssdname",ssd.price "ssdprice",ssd.dnsrating "ssdrating" from rammax,ssd where hddrating = (select max(hddrating) from rammax) and ssd.price<{ssdprice}),
-    #
-    # ssdmax as (
-    # select hddmax.*,cooler.name "coolername",cooler.price "coolerprice",cooler.dnsrating "coolerrating" from hddmax,cooler where ssdrating = (select max(ssdrating) from hddmax) and cooler.price <{coolerprice}),
-    #
-    # coolermax as (
-    # select ssdmax.*,block.name "blockname",block.price "blockprice",block.dnsrating "blockrating" from ssdmax,block where coolerrating = (select max(coolerrating) from ssdmax) and block.price <{blockprice}),
-    #
-    # blockmax as (
-    # select coolermax.*,video.name "videoname",video.price "videoprice",video.benchrating "videobench" from coolermax,video where blockrating = (select max(blockrating) from coolermax) and video.price < {videoprice}),
-    #
-    # videomax as (
-    # select * from blockmax where videobench = (select max(videobench) from blockmax))
-    #
-    # select *,(select cpuprice+motherprice+ramprice+videoprice+blockprice+ssdprice+hddprice+coolerprice) as resultprice from videomax order by cpuname limit 1
-    #     '''.format(cpuprice=componentprice['cpuprice'],motherprice=componentprice['motherprice'],
-    #                videoprice=componentprice['videoprice'],ramprice=componentprice['ramprice'],
-    #                hddprice=componentprice['hddprice'],ssdprice=componentprice['ssdprice'],
-    #                coolerprice=componentprice['coolerprice'],blockprice=componentprice['blockprice'])
-    #
-    #     cursor.execute(sql)
-    #
-    #     for i in cursor.fetchall():
-    #         resultbuilds.append(i)
-    #
-    # for i in resultbuilds:
-    #     print (i)
 
 
 
 if __name__ == "__main__":
 
-    #getBuilds()
+    getBuilds()
 
-    CPU = CPU("processory", "17a899cd16404e77","cpu","cpubenchmark.net/cpu_list.php#single-cpu")
-    CPU.getbenchRating()
+    # CPU = CPU("processory", "17a899cd16404e77","cpu","cpubenchmark.net/cpu_list.php#single-cpu")
+    # CPU.getbenchRating()
     # Video = Video("videokarty", "17a89aab16404e77","video","videocardbenchmark.net/gpu_list.php")
     # Video.getbenchRating()
     # RAM = RAM("operativnaya-pamyat-dimm", "17a89a3916404e77","ram")
