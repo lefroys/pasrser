@@ -595,35 +595,122 @@ def getBuilds():
 
 
 
-    for generalprice in range(80000,81000,1000):
+    # Паттерны для сборок
+
+    recCountRAM = 16  # рекомендуемый размер оперативной памяти
+    recCountHDD = 1000 # рекомаендуемый размер HDD
+    recCountSSD = 500 # рекомаендуемый размер SSD
 
 
-        resultbuilds=[]
-        resultprice=10000000
+    for generalprice in range(41000,50000,1000):
+
+        resultbuilds = []
 
 
-        maxRamPrice = generalprice * 0.12
-        minRamPrice = generalprice * 0.06
 
-        maxcoolerprice = generalprice * 0.03
-        mincoolerprice = generalprice * 0.01
-
-        maxVideoPrice = generalprice * 0.5
-        minVideoPrice = generalprice * 0.29  # было 0.31
-
-        maxCpuPrice = generalprice * 0.26
-        minCpuPrice = generalprice * 0.09  # было 0.18
-
-        maxHddPrice = generalprice * 0.1
-        minHddPrice = generalprice * 0.04
-
-        maxBlockPrice = generalprice * 0.09
-        minBlockPrice = generalprice * 0.04
-
-        maxMotherPrice = generalprice * 0.15
-        minMotherPrice = generalprice * 0.1
+        if generalprice <= 40000:
+            maxCpuPrice = 0.2
+            maxVideoPrice = 0.29
+            maxRamPrice = 0.13
+            maxMotherPrice = 0.14
+            maxHddPrice = 0.09
+            maxSSDPrice = 0     # не нужен
+            maxBlockPrice = 0.09
+            maxcoolerprice = 0.02
 
 
+
+        elif generalprice > 40000 and generalprice <= 50000:
+            maxCpuPrice = 0.21
+            maxVideoPrice = 0.33
+            maxRamPrice = 0.12
+            maxMotherPrice = 0.13
+            maxHddPrice = 0.07
+            maxSSDPrice = 0.05
+            maxBlockPrice = 0.07
+            maxcoolerprice = 0.02
+
+            recCountHDD = 1000
+
+        elif generalprice > 50000 and generalprice <= 60000:
+            maxCpuPrice = 0.24
+            maxVideoPrice = 0.36
+            maxRamPrice = 0.1
+            maxMotherPrice = 0.1
+            maxHddPrice = 0.05
+            maxSSDPrice = 0.05
+            maxBlockPrice = 0.08
+            maxcoolerprice = 0.02
+
+            recCountHDD = 1000
+        elif generalprice > 60000 and generalprice <= 70000:
+            maxCpuPrice = 0.23
+            maxVideoPrice = 0.36
+            maxRamPrice = 0.09
+            maxMotherPrice = 0.12
+            maxHddPrice = 0.05
+            maxSSDPrice = 0.04
+            maxBlockPrice = 0.09
+            maxcoolerprice = 0.02
+
+            recCountHDD = 1000
+        elif generalprice > 70000 and generalprice <= 100000:
+            maxCpuPrice = 0.22
+            maxVideoPrice = 0.37
+            maxRamPrice = 0.1
+            maxMotherPrice = 0.1
+            maxHddPrice = 0.04
+            maxSSDPrice = 0.07
+            maxBlockPrice = 0.08
+            maxcoolerprice = 0.02
+
+            recCountHDD = 2000
+        elif generalprice > 100000 and generalprice <= 150000:
+            maxCpuPrice = 0.23
+            maxVideoPrice = 0.40
+            maxRamPrice = 0.08
+            maxMotherPrice = 0.1
+            maxHddPrice = 0.04
+            maxSSDPrice = 0.05
+            maxBlockPrice = 0.06
+            maxcoolerprice = 0.04
+
+            recCountHDD = 2000
+            recCountRAM = 32
+
+        else:   # больше 150к
+            maxCpuPrice = 0.19
+            maxVideoPrice = 0.41
+            maxRamPrice = 0.07
+            maxMotherPrice = 0.11
+            maxHddPrice = 0.04
+            maxSSDPrice = 0.05
+            maxBlockPrice = 0.06
+            maxcoolerprice = 0.07
+
+            recCountHDD = 4000
+            recCountRAM = 32
+
+        maxCpuPrice *=generalprice
+        maxVideoPrice *=generalprice
+        maxRamPrice *=generalprice
+        maxMotherPrice *=generalprice
+        maxHddPrice *=generalprice
+        maxSSDPrice *=generalprice
+        maxBlockPrice *=generalprice
+        maxcoolerprice *=generalprice
+
+        minCpuPrice = maxCpuPrice*0.8
+        minVideoPrice = maxVideoPrice*0.8
+        minRamPrice = maxRamPrice*0.2
+        minMotherPrice = maxMotherPrice*0.7
+        minHddPrice = maxHddPrice*0.5
+        minSSDPrice = maxSSDPrice*0.5
+        minBlockPrice = maxBlockPrice*0.6
+        mincoolerprice = maxcoolerprice*0.5
+
+
+        print (maxHddPrice)
         flag = 1 # где 1 - кулер, 2 - БП , 3 - HDD 4 - mother, 5 - ОЗУ, 6 - CPU + Video
 
         k=0
@@ -681,8 +768,9 @@ def getBuilds():
         ramIndex = 0
 
         for i in range(len(ram_name)):
-
-            if ram_socket[i]==resultbuilds[k][6] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ram_power[i]<=resultbuilds[k][7] and ((ram_count[i]>=2 and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_price[i]*2<=maxRamPrice)):
+            #if ram_memory[i]==recCountRAM/2 and ram_count[i]==1 and ram_price[i]>=minRamPrice:
+                #print (ram_price[i])
+            if ram_socket[i]==resultbuilds[k][6] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ((ram_count[i]>=2 and ram_memory[i]==recCountRAM and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_memory[i]==recCountRAM/2 and ram_price[i]*2<=maxRamPrice)):
                 max = ram_dnsrating[i]
                 ramIndex = i
 
@@ -696,13 +784,25 @@ def getBuilds():
         hddIndex = 0
 
         for i in range(len(hdd_name)):
-            if (hdd_dnsrating[i] > max and hdd_price[i]<=maxHddPrice and hdd_price[i]>=minHddPrice):
+            if (hdd_dnsrating[i] > max and hdd_price[i]<=maxHddPrice and hdd_size[i]==recCountHDD and hdd_price[i]>=minHddPrice):
                 max = hdd_dnsrating[i]
                 hddIndex = i
 
         resultbuilds[k].extend((hdd_name[hddIndex], hdd_size[hddIndex], hdd_price[hddIndex]))
         resultprice+=hdd_price[hddIndex]
 
+        ###################### Поиск SSD
+        max = 0
+        ssdIndex = 0
+
+        for i in range(len(hdd_name)):
+            if (ssd_dnsrating[i] > max and ssd_price[i] <= maxSSDPrice and ssd_price[i] >= minSSDPrice):
+                max = hdd_dnsrating[i]
+                hddIndex = i
+
+        if maxSSDPrice!=0:
+            resultbuilds[k].extend((ssd_name[hddIndex], ssd_price[hddIndex]))
+            resultprice += ssd_price[ssdIndex]
 
 
         ####################### Поиск БП
@@ -731,7 +831,7 @@ def getBuilds():
         resultbuilds[k].extend((cooler_name[coolerIndex], cooler_watt[coolerIndex], cooler_price[coolerIndex]))
         resultprice+=cooler_price[coolerIndex]
 
-  
+
         resultbuilds[k].append(resultprice)
 
         #print (resultbuilds[k],generalprice,flag)
@@ -740,7 +840,9 @@ def getBuilds():
         #k += 1
 
 
-        print("Итоговая сборка: ",resultbuilds[-1])
+        print("Итоговая сборка: ", resultbuilds[-1])
+        print ('Стоимость',resultprice,'Цель',generalprice,'Расхождение',resultprice/generalprice)
+
 
 
 
