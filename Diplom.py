@@ -225,6 +225,8 @@ class Base:     # базовый класс
                                 name=self.productName[i], rating=rate[j][1],tablename=self.tableName))
 
 
+
+
                 else:   # аналогично выше, только в имени комплектующего в списке бенчмарка не было символа @
                     if (re.search(r'\b' + rate[j][0].upper() + r'\b', self.productName[i].upper()) != None):
                         self.cursor.execute(
@@ -265,6 +267,7 @@ class CPU(Base):
         self.SocketName = []  # имя сокета
         self.PowerName = []  # герцовка
         self.CountCPUs = []  # количество ядер
+        self.TDP = []       # TDP процессора
         self.urlrate = urlrate  # ссылка на сайт с рейтингом
 
 
@@ -273,7 +276,7 @@ class CPU(Base):
     def getAdditional(self):
 
 
-        self.lineName.extend([self.productName, self.SocketName, self.PowerName, self.CountCPUs, self.price, self.dnsrate])  # объединение списков в один список для коммита последующего
+        self.lineName.extend([self.productName, self.SocketName, self.PowerName, self.CountCPUs,self.TDP, self.price, self.dnsrate])  # объединение списков в один список для коммита последующего
 
 
 
@@ -283,11 +286,13 @@ class CPU(Base):
             matchSocket = re.search(r'\[(.*?)\,', result)
             matchPower = re.search(r'x(.*?)М', result)
             matchCountCpus = re.search(r', \d{1,2}', result)
+            matchTDP = re.search(r'\d{2,3} Вт',result)
+
 
             self.SocketName.append(matchSocket.group()[1:-1])
             self.PowerName.append(matchPower.group()[2:-2])
             self.CountCPUs.append(matchCountCpus.group()[2:])
-
+            self.TDP.append(matchTDP.group()[:-2])
 
 
 class Mother(Base):
@@ -397,17 +402,19 @@ class SSD(Base):
     def __init__(self, validateName, validateID, tableName):
         self.WriteSSD = []  # имя сокета
         self.ReadSSD = []  # герцовка
-
+        self.SizeSSD = [] # размер ССД диска
         self.startScraper(validateName, validateID, tableName)
 
     def getAdditional(self):
 
 
-        self.lineName = [self.productName, self.WriteSSD,self.ReadSSD, self.price,
+        self.lineName = [self.productName, self.SizeSSD, self.WriteSSD,self.ReadSSD, self.price,
                          self.dnsrate]  # список строк для коммита в таблицу
         for el in self.html.select('.product-info'):
-            result = el.select('.product-info__title > span')
+            result = el.select('.product-info__title > span')           # парсинг доп. информации
             result = result[0].text
+
+
 
             try:
                 matchWrite = re.search(r'запись - \d{3,4}', result)
@@ -423,6 +430,14 @@ class SSD(Base):
             except:
                 matchRead = 0
                 self.ReadSSD.append(matchRead)
+
+        for el in self.html.select('.product-info__title'):
+            result = el.select('.product-info__title-link > a')     # парсинг по имени
+            result = result[0].text
+
+            matchSize = re.search(r'\d{1,4} ', result)              # сохранение размера SSD
+            self.SizeSSD.append(matchSize.group()[:-1])
+
 
 class HDD(Base):
     def __init__(self, validateName, validateID, tableName):
@@ -449,12 +464,13 @@ class Cooler(Base):
     def __init__(self, validateName, validateID, tableName):
         self.Watt = []  # имя сокета
 
+
         self.startScraper(validateName, validateID, tableName)
 
     def getAdditional(self):
 
 
-        self.lineName = [self.productName, self.Watt,self.price,
+        self.lineName = [self.productName, self.Watt, self.CoolerTDP,self.price,
                          self.dnsrate]  # список строк для коммита в таблицу
         for el in self.html.select('.product-info'):
             result = el.select('.product-info__title > span')
@@ -480,13 +496,15 @@ def getBuilds():
     cpu_price = []
     cpu_bench = []
     cpu_dnsrate = []
+    cpu_tdp = []
 
     for i in cursor.fetchall():
         cpu_name.append(i[1])
         cpu_socket.append(i[2])
-        cpu_price.append(i[5])
-        cpu_dnsrate.append(i[6])
-        cpu_bench.append(i[7])
+        cpu_tdp.append(i[5])
+        cpu_price.append(i[6])
+        cpu_dnsrate.append(i[7])
+        cpu_bench.append(i[8])
 
     cursor.execute("set schema 'scraper'; select * from video;")
 
@@ -561,11 +579,13 @@ def getBuilds():
     ssd_name = []
     ssd_price = []
     ssd_dnsrating = []
+    ssd_size = []
 
     for i in cursor.fetchall():
         ssd_name.append(i[1])
-        ssd_price.append(i[4])
-        ssd_dnsrating.append(i[5])
+        ssd_size.append(i[2])
+        ssd_price.append(i[5])
+        ssd_dnsrating.append(i[6])
 
     cursor.execute("set schema 'scraper'; select * from hdd;")
 
@@ -597,35 +617,36 @@ def getBuilds():
 
     # Паттерны для сборок
 
-    recCountRAM = 16  # рекомендуемый размер оперативной памяти
-    recCountHDD = 1000 # рекомаендуемый размер HDD
-    recCountSSD = 500 # рекомаендуемый размер SSD
+    recCountRAM = 8  # рекомендуемый размер оперативной памяти для одной планки по умолчанию
+    recCountHDD = 1000 # рекомаендуемый размер HDD по умолчанию
+    recCountSSD = 120 # рекомаендуемый размер SSD по умолчанию
 
 
-    for generalprice in range(41000,50000,1000):
+    for generalprice in range(30000,200000,1000):
 
         resultbuilds = []
 
 
 
         if generalprice <= 40000:
-            maxCpuPrice = 0.2
-            maxVideoPrice = 0.29
+            maxCpuPrice = 0.24
+            maxVideoPrice = 0.24
             maxRamPrice = 0.13
-            maxMotherPrice = 0.14
-            maxHddPrice = 0.09
+            maxMotherPrice = 0.18
+            maxHddPrice = 0.1
             maxSSDPrice = 0     # не нужен
             maxBlockPrice = 0.09
             maxcoolerprice = 0.02
 
+            recCountRAM = 4
 
 
         elif generalprice > 40000 and generalprice <= 50000:
             maxCpuPrice = 0.21
-            maxVideoPrice = 0.33
+            maxVideoPrice = 0.32
             maxRamPrice = 0.12
             maxMotherPrice = 0.13
-            maxHddPrice = 0.07
+            maxHddPrice = 0.08
             maxSSDPrice = 0.05
             maxBlockPrice = 0.07
             maxcoolerprice = 0.02
@@ -634,15 +655,17 @@ def getBuilds():
 
         elif generalprice > 50000 and generalprice <= 60000:
             maxCpuPrice = 0.24
-            maxVideoPrice = 0.36
+            maxVideoPrice = 0.35
             maxRamPrice = 0.1
             maxMotherPrice = 0.1
-            maxHddPrice = 0.05
+            maxHddPrice = 0.06
             maxSSDPrice = 0.05
             maxBlockPrice = 0.08
             maxcoolerprice = 0.02
 
             recCountHDD = 1000
+            recCountSSD=240
+
         elif generalprice > 60000 and generalprice <= 70000:
             maxCpuPrice = 0.23
             maxVideoPrice = 0.36
@@ -654,42 +677,48 @@ def getBuilds():
             maxcoolerprice = 0.02
 
             recCountHDD = 1000
+            recCountSSD=240
+
         elif generalprice > 70000 and generalprice <= 100000:
             maxCpuPrice = 0.22
-            maxVideoPrice = 0.37
+            maxVideoPrice = 0.36
             maxRamPrice = 0.1
             maxMotherPrice = 0.1
-            maxHddPrice = 0.04
+            maxHddPrice = 0.05
             maxSSDPrice = 0.07
             maxBlockPrice = 0.08
             maxcoolerprice = 0.02
 
-            recCountHDD = 2000
+            recCountHDD = 1000
+            recCountSSD = 480
         elif generalprice > 100000 and generalprice <= 150000:
-            maxCpuPrice = 0.23
-            maxVideoPrice = 0.40
-            maxRamPrice = 0.08
+            maxCpuPrice = 0.22
+            maxVideoPrice = 0.37
+            maxRamPrice = 0.09
             maxMotherPrice = 0.1
-            maxHddPrice = 0.04
-            maxSSDPrice = 0.05
+            maxHddPrice = 0.035
+            maxSSDPrice = 0.085
             maxBlockPrice = 0.06
             maxcoolerprice = 0.04
 
-            recCountHDD = 2000
-            recCountRAM = 32
+            recCountHDD = 1000
+            recCountRAM = 16
+            recCountSSD = 960
 
         else:   # больше 150к
             maxCpuPrice = 0.19
-            maxVideoPrice = 0.41
+            maxVideoPrice = 0.40
             maxRamPrice = 0.07
             maxMotherPrice = 0.11
-            maxHddPrice = 0.04
-            maxSSDPrice = 0.05
+            maxHddPrice = 0.03
+            maxSSDPrice = 0.07
             maxBlockPrice = 0.06
             maxcoolerprice = 0.07
 
-            recCountHDD = 4000
-            recCountRAM = 32
+            recCountHDD = 2000
+            recCountRAM = 16
+            recCountSSD = 960
+
 
         maxCpuPrice *=generalprice
         maxVideoPrice *=generalprice
@@ -702,7 +731,7 @@ def getBuilds():
 
         minCpuPrice = maxCpuPrice*0.8
         minVideoPrice = maxVideoPrice*0.8
-        minRamPrice = maxRamPrice*0.2
+        minRamPrice = maxRamPrice*0.45
         minMotherPrice = maxMotherPrice*0.7
         minHddPrice = maxHddPrice*0.5
         minSSDPrice = maxSSDPrice*0.5
@@ -710,8 +739,6 @@ def getBuilds():
         mincoolerprice = maxcoolerprice*0.5
 
 
-        print (maxHddPrice)
-        flag = 1 # где 1 - кулер, 2 - БП , 3 - HDD 4 - mother, 5 - ОЗУ, 6 - CPU + Video
 
         k=0
 
@@ -724,13 +751,14 @@ def getBuilds():
 
 
         for i in range(len(cpu_name)):
-            if (cpu_bench[i]>max and cpu_price[i]<maxCpuPrice and cpu_price[i]>minCpuPrice):
+            if (cpu_bench[i]>max  and 'OEM' in cpu_name[i] and cpu_price[i]<maxCpuPrice and cpu_price[i]>minCpuPrice):
                 max = cpu_bench[i]
                 cpuIndex = i
 
 
 
-        resultbuilds.append([cpu_name[cpuIndex],cpu_socket[cpuIndex],cpu_price[cpuIndex]])
+
+        resultbuilds.append([cpu_name[cpuIndex],cpu_tdp[cpuIndex],cpu_socket[cpuIndex],cpu_price[cpuIndex]])
         resultprice+=cpu_price[cpuIndex]
 
 
@@ -754,12 +782,11 @@ def getBuilds():
 
         for i in range(len(mother_name)):
 
-            if (resultbuilds[k][1]==mother_socket[i] and mother_dnsrate[i]>max and mother_price[i]<=maxMotherPrice and mother_price[i]>=minMotherPrice):
+            if (resultbuilds[k][1]==mother_socket[i] and mother_ramname[i]=='DDR4' and mother_dnsrate[i]>max and mother_price[i]<=maxMotherPrice and mother_price[i]>=minMotherPrice):
                 max = mother_dnsrate[i]
                 motherIndex=i
 
-        resultbuilds[k].extend((mother_name[motherIndex], mother_ramname[motherIndex], mother_rampower[motherIndex],
-                                mother_price[motherIndex]))
+        resultbuilds[k].extend((mother_name[motherIndex], mother_ramname[motherIndex], mother_rampower[motherIndex], mother_price[motherIndex]))
         resultprice += mother_price[motherIndex]
 
 
@@ -767,16 +794,22 @@ def getBuilds():
         max=0
         ramIndex = 0
 
+
         for i in range(len(ram_name)):
             #if ram_memory[i]==recCountRAM/2 and ram_count[i]==1 and ram_price[i]>=minRamPrice:
                 #print (ram_price[i])
-            if ram_socket[i]==resultbuilds[k][6] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ((ram_count[i]>=2 and ram_memory[i]==recCountRAM and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_memory[i]==recCountRAM/2 and ram_price[i]*2<=maxRamPrice)):
+            if ram_socket[i]==resultbuilds[k][6] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ((ram_count[i]>=2 and ram_memory[i]==recCountRAM and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_memory[i]==recCountRAM and ram_price[i]*2<=maxRamPrice)):
                 max = ram_dnsrating[i]
                 ramIndex = i
 
 
-        resultbuilds[k].extend((ram_name[ramIndex], ram_count[ramIndex], ram_price[ramIndex]))
-        resultprice += ram_price[ramIndex]
+        if ram_count[ramIndex]==1:      # если в комплекте 1 планка, то удваиваем цену и количество т.к берём по две.
+            resultbuilds[k].extend((ram_name[ramIndex], ram_count[ramIndex]*2, ram_price[ramIndex]*2))
+            resultprice += ram_price[ramIndex]
+        else:
+            resultbuilds[k].extend((ram_name[ramIndex], ram_count[ramIndex], ram_price[ramIndex]))
+            resultprice += ram_price[ramIndex]
+
 
 
         ###################### Поиск HDD
@@ -784,6 +817,7 @@ def getBuilds():
         hddIndex = 0
 
         for i in range(len(hdd_name)):
+
             if (hdd_dnsrating[i] > max and hdd_price[i]<=maxHddPrice and hdd_size[i]==recCountHDD and hdd_price[i]>=minHddPrice):
                 max = hdd_dnsrating[i]
                 hddIndex = i
@@ -795,13 +829,13 @@ def getBuilds():
         max = 0
         ssdIndex = 0
 
-        for i in range(len(hdd_name)):
-            if (ssd_dnsrating[i] > max and ssd_price[i] <= maxSSDPrice and ssd_price[i] >= minSSDPrice):
-                max = hdd_dnsrating[i]
-                hddIndex = i
+        for i in range(len(ssd_name)):
+            if (ssd_dnsrating[i] > max and ssd_size[i]>=recCountSSD and ssd_size[i]<=recCountSSD+60 and ssd_price[i] <= maxSSDPrice and ssd_price[i] >= minSSDPrice):
+                max = ssd_dnsrating[i]
+                ssdIndex = i
 
         if maxSSDPrice!=0:
-            resultbuilds[k].extend((ssd_name[hddIndex], ssd_price[hddIndex]))
+            resultbuilds[k].extend((ssd_name[ssdIndex], ssd_price[ssdIndex]))
             resultprice += ssd_price[ssdIndex]
 
 
@@ -824,7 +858,7 @@ def getBuilds():
         max = 0
 
         for i in range(len(cooler_name)):
-            if (cooler_dnsrating[i] > max and cooler_price[i]<=maxcoolerprice and cooler_price[i]>=mincoolerprice):
+            if (cooler_dnsrating[i] > max and cooler_watt[i]>=cpu_tdp[cpuIndex]+cpu_tdp[cpuIndex]*0.3 and cooler_price[i]<=maxcoolerprice and cooler_price[i]>=mincoolerprice): # учет TDP, рейтинга ДНС и диапозона цен
                 max = cooler_dnsrating[i]
                 coolerIndex = i
 
@@ -837,14 +871,16 @@ def getBuilds():
         #print (resultbuilds[k],generalprice,flag)
 
         #time.sleep(0.5)
-        #k += 1
-
+        k += 1
 
         print("Итоговая сборка: ", resultbuilds[-1])
-        print ('Стоимость',resultprice,'Цель',generalprice,'Расхождение',resultprice/generalprice)
+        print('Стоимость', resultprice, 'Цель', generalprice, 'Расхождение', resultprice / generalprice)
 
-
-
+        if ramIndex ==0 or motherIndex == 0 or cpuIndex==0 or hddIndex==0 or blockIndex==0 or ssdIndex==0 or videoIndex==0 or coolerIndex==0:
+            if generalprice<=40000 and ssdIndex==0:
+                continue
+            else:
+                print ('STOP!!!!!!!!!!!!!')
 
 
 
@@ -858,8 +894,8 @@ if __name__ == "__main__":
 
     getBuilds()
 
-    # CPU = CPU("processory", "17a899cd16404e77","cpu","cpubenchmark.net/cpu_list.php#single-cpu")
-    # CPU.getbenchRating()
+    #CPU = CPU("processory", "17a899cd16404e77","cpu","cpubenchmark.net/cpu_list.php#single-cpu")
+    #CPU.getbenchRating()
     # Video = Video("videokarty", "17a89aab16404e77","video","videocardbenchmark.net/gpu_list.php")
     # Video.getbenchRating()
     # RAM = RAM("operativnaya-pamyat-dimm", "17a89a3916404e77","ram")
@@ -867,4 +903,4 @@ if __name__ == "__main__":
     # Block = Block("bloki-pitaniya", "17a89c2216404e77","block")
     # SSD = SSD("ssd-nakopiteli", "8a9ddfba20724e77","ssd")
     # HDD = HDD("zhestkie-diski-35", "17a8914916404e77","hdd")
-    # Cooler = Cooler("kulery-dlya-processorov", "17a9cc2d16404e77","cooler")
+    #Cooler = Cooler("kulery-dlya-processorov", "17a9cc2d16404e77","cooler")
