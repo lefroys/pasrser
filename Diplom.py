@@ -657,351 +657,340 @@ def getBuilds():
     recCountHDD = 1000 # рекомаендуемый размер HDD по умолчанию
     recCountSSD = 120 # рекомаендуемый размер SSD по умолчанию
     needFindVideo = True # флаг для поиска видеокарт в других ценовых категориях ввиду отсутствия их на рынке.
-    companyCPU = [' ', 'AMD', 'Intel']
-    companyVideo = [' ', 'GeForce', 'Radeon']
+    companyCPU = [' ','AMD','Intel']
+    companyVideo = [' ','GeForce','Radeon']
 
-    # checkRam = []
-    # checkMother = []
-    # checkCpu = []
-    # checkhdd = []
-    # checkBlock = []
-    # checkSsd = []
-    # checkvideo = []
-    # checkcooler = []
 
     resultBuild = []        # массив для окончательной сборки
     generateBuild = []      # массив для генерируемых сборок
     idResultBuild = []      # идентификаторы окончательной сборки
+    comboIndex = 1          # индекс для комбинации сборок
+    stopBuild = False       # аварийное завершение сборщика, в случае если не удаётся найти комплектующие (как правило связано с кризисом видеокарт)
+
+    for comboCPUindex in companyCPU:
+        for comboVideoindex in companyVideo:
+            stopBuild = False
+            for generalprice in range(30000,150000,1000):
+
+
+                if generalprice <= 40000:
+                    maxCpuProc = 0.24
+                    maxVideoPrice = 0.24
+                    maxRamPrice = 0.13
+                    maxMotherPrice = 0.18
+                    maxHddPrice = 0.1
+                    maxSSDPrice = 0     # не нужен
+                    maxBlockPrice = 0.09
+                    maxcoolerprice = 0.03
+
+                    recCountRAM = 4
+
+
+                elif generalprice > 40000 and generalprice <= 50000:
+                    maxCpuProc = 0.21
+                    maxVideoPrice = 0.32
+                    maxRamPrice = 0.12
+                    maxMotherPrice = 0.13
+                    maxHddPrice = 0.08
+                    maxSSDPrice = 0.05
+                    maxBlockPrice = 0.07
+                    maxcoolerprice = 0.02
+
+                    recCountHDD = 1000
+
+                elif generalprice > 50000 and generalprice <= 60000:
+                    maxCpuProc = 0.24
+                    maxVideoPrice = 0.35
+                    maxRamPrice = 0.1
+                    maxMotherPrice = 0.11
+                    maxHddPrice = 0.06
+                    maxSSDPrice = 0.05
+                    maxBlockPrice = 0.08
+                    maxcoolerprice = 0.02
+
+                    recCountHDD = 1000
+                    recCountSSD=240
+
+                elif generalprice > 60000 and generalprice <= 70000:
+                    maxCpuProc = 0.23
+                    maxVideoPrice = 0.36
+                    maxRamPrice = 0.09
+                    maxMotherPrice = 0.12
+                    maxHddPrice = 0.05
+                    maxSSDPrice = 0.04
+                    maxBlockPrice = 0.09
+                    maxcoolerprice = 0.02
+
+                    recCountHDD = 1000
+                    recCountSSD=240
+
+                elif generalprice > 70000 and generalprice <= 100000:
+                    maxCpuProc = 0.21
+                    maxVideoPrice = 0.35
+                    maxRamPrice = 0.11
+                    maxMotherPrice = 0.1
+                    maxHddPrice = 0.05
+                    maxSSDPrice = 0.07
+                    maxBlockPrice = 0.08
+                    maxcoolerprice = 0.03
+
+                    recCountHDD = 1000
+                    recCountSSD = 480
+                elif generalprice > 100000 and generalprice <= 150000:
+                    maxCpuProc = 0.22
+                    maxVideoPrice = 0.36
+                    maxRamPrice = 0.1
+                    maxMotherPrice = 0.1
+                    maxHddPrice = 0.035
+                    maxSSDPrice = 0.085
+                    maxBlockPrice = 0.06
+                    maxcoolerprice = 0.04
 
+                    recCountHDD = 1000
+                    recCountRAM = 16
+                    recCountSSD = 960
 
+                else:   # больше 150к  # свободных 2 процента
+                    maxCpuProc = 0.19
+                    maxVideoPrice = 0.40
+                    maxRamPrice = 0.07
+                    maxMotherPrice = 0.11
+                    maxHddPrice = 0.03
+                    maxSSDPrice = 0.07
+                    maxBlockPrice = 0.06
+                    maxcoolerprice = 0.05
 
-    for generalprice in range(30000,150000,1000):
-
-
-        if generalprice <= 40000:
-            maxCpuProc = 0.24
-            maxVideoPrice = 0.24
-            maxRamPrice = 0.13
-            maxMotherPrice = 0.18
-            maxHddPrice = 0.1
-            maxSSDPrice = 0     # не нужен
-            maxBlockPrice = 0.09
-            maxcoolerprice = 0.03
-
-            recCountRAM = 4
-
-
-        elif generalprice > 40000 and generalprice <= 50000:
-            maxCpuProc = 0.21
-            maxVideoPrice = 0.32
-            maxRamPrice = 0.12
-            maxMotherPrice = 0.13
-            maxHddPrice = 0.08
-            maxSSDPrice = 0.05
-            maxBlockPrice = 0.07
-            maxcoolerprice = 0.02
-
-            recCountHDD = 1000
-
-        elif generalprice > 50000 and generalprice <= 60000:
-            maxCpuProc = 0.24
-            maxVideoPrice = 0.35
-            maxRamPrice = 0.1
-            maxMotherPrice = 0.11
-            maxHddPrice = 0.06
-            maxSSDPrice = 0.05
-            maxBlockPrice = 0.08
-            maxcoolerprice = 0.02
+                    recCountHDD = 2000
+                    recCountRAM = 16
+                    recCountSSD = 960
 
-            recCountHDD = 1000
-            recCountSSD=240
 
-        elif generalprice > 60000 and generalprice <= 70000:
-            maxCpuProc = 0.23
-            maxVideoPrice = 0.36
-            maxRamPrice = 0.09
-            maxMotherPrice = 0.12
-            maxHddPrice = 0.05
-            maxSSDPrice = 0.04
-            maxBlockPrice = 0.09
-            maxcoolerprice = 0.02
+                maxCpuPrice =generalprice*maxCpuProc
+                maxVideoPrice *=generalprice
+                maxRamPrice *=generalprice
+                maxMotherPrice *=generalprice
+                maxHddPrice *=generalprice
+                maxSSDPrice *=generalprice
+                maxBlockPrice *=generalprice
+                maxcoolerprice *=generalprice
 
-            recCountHDD = 1000
-            recCountSSD=240
 
-        elif generalprice > 70000 and generalprice <= 100000:
-            maxCpuProc = 0.21
-            maxVideoPrice = 0.35
-            maxRamPrice = 0.11
-            maxMotherPrice = 0.1
-            maxHddPrice = 0.05
-            maxSSDPrice = 0.07
-            maxBlockPrice = 0.08
-            maxcoolerprice = 0.03
+                minCpuPrice = maxCpuPrice*0.7
+                minVideoPrice = maxVideoPrice*0.9
+                minRamPrice = maxRamPrice*0.65
+                minMotherPrice = maxMotherPrice*0.7
+                minHddPrice = maxHddPrice*0.7
+                minSSDPrice = maxSSDPrice*0.5
+                minBlockPrice = maxBlockPrice*0.8
+                mincoolerprice = maxcoolerprice*0.6
 
-            recCountHDD = 1000
-            recCountSSD = 480
-        elif generalprice > 100000 and generalprice <= 150000:
-            maxCpuProc = 0.22
-            maxVideoPrice = 0.36
-            maxRamPrice = 0.1
-            maxMotherPrice = 0.1
-            maxHddPrice = 0.035
-            maxSSDPrice = 0.085
-            maxBlockPrice = 0.06
-            maxcoolerprice = 0.04
+                k = 0
+                resultprice = 0  # результирующая стоимость сборки
 
-            recCountHDD = 1000
-            recCountRAM = 16
-            recCountSSD = 960
+                while resultprice/generalprice<0.9:
 
-        else:   # больше 150к  # свободных 2 процента
-            maxCpuProc = 0.19
-            maxVideoPrice = 0.40
-            maxRamPrice = 0.07
-            maxMotherPrice = 0.11
-            maxHddPrice = 0.03
-            maxSSDPrice = 0.07
-            maxBlockPrice = 0.06
-            maxcoolerprice = 0.05
+                    resultprice=0
 
-            recCountHDD = 2000
-            recCountRAM = 16
-            recCountSSD = 960
+                    generateBuild.clear()
 
 
-        maxCpuPrice =generalprice*maxCpuProc
-        maxVideoPrice *=generalprice
-        maxRamPrice *=generalprice
-        maxMotherPrice *=generalprice
-        maxHddPrice *=generalprice
-        maxSSDPrice *=generalprice
-        maxBlockPrice *=generalprice
-        maxcoolerprice *=generalprice
 
+                    ############### Поиск ЦПУ
+                    max = 0     # для поиска максимального по benchrating комплектующего (далее аналогично)
+                    cpuIndex = 0
 
-        minCpuPrice = maxCpuPrice*0.7
-        minVideoPrice = maxVideoPrice*0.9
-        minRamPrice = maxRamPrice*0.65
-        minMotherPrice = maxMotherPrice*0.7
-        minHddPrice = maxHddPrice*0.7
-        minSSDPrice = maxSSDPrice*0.5
-        minBlockPrice = maxBlockPrice*0.8
-        mincoolerprice = maxcoolerprice*0.6
 
-        k = 0
-        resultprice = 0  # результирующая стоимость сборки
+                    for i in range(len(cpu_name)):
+                        if (cpu_bench[i]!=None and cpu_bench[i]>max and 'OEM' in cpu_name[i] and comboCPUindex in cpu_name[i] and cpu_price[i]<=maxCpuPrice and cpu_price[i]>=minCpuPrice):
+                            max = cpu_bench[i]
+                            cpuIndex = i
 
 
+                    maxCpuPrice +=50
 
 
 
-        while resultprice/generalprice<0.95:
+                    generateBuild.append([cpu_name[cpuIndex],cpu_tdp[cpuIndex],cpu_socket[cpuIndex],cpu_price[cpuIndex]])
+                    resultprice+=cpu_price[cpuIndex]
 
-            resultprice=0
 
-            generateBuild.clear()
+                    ################### Поиск Видеокарты
+                    max=0
+                    videoIndex=0
 
 
+                    if needFindVideo==True:         # если ситуация с видеокартами кризисная
+                        while videoIndex==0:
 
-            ############### Поиск ЦПУ
-            max = 0     # для поиска максимального по benchrating комплектующего (далее аналогично)
-            cpuIndex = 0
+                            for i in range(len(video_name)):
 
+                                if (video_bench[i] != None and video_bench[i]>max and video_price[i]<=maxVideoPrice and comboVideoindex in video_name[i] and video_price[i]>minVideoPrice):
+                                    max = video_bench[i]
+                                    videoIndex = i
 
-            for i in range(len(cpu_name)):
-                if (cpu_bench[i]!=None and cpu_bench[i]>max and 'OEM' in cpu_name[i] and cpu_price[i]<=maxCpuPrice and cpu_price[i]>=minCpuPrice):
-                    max = cpu_bench[i]
-                    cpuIndex = i
+                            minVideoPrice-=50
 
+                            if minVideoPrice<0:
+                                break
+                    else:
+                        for i in range(len(video_name)):
 
-            maxCpuPrice +=50
+                            if (video_bench[i] != None and video_bench[i] > max and video_price[i] <= maxVideoPrice and comboVideoindex in video_name[i] and video_price[i] > minVideoPrice):
+                                max = video_bench[i]
+                                videoIndex = i
 
 
-            generateBuild.append([cpu_id[cpuIndex],cpu_name[cpuIndex],cpu_tdp[cpuIndex],cpu_socket[cpuIndex],cpu_price[cpuIndex]])
-            resultprice+=cpu_price[cpuIndex]
+                    maxVideoPrice+=50
 
 
-            ################### Поиск Видеокарты
-            max=0
-            videoIndex=0
+                    generateBuild[k].extend((video_name[videoIndex],video_price[videoIndex]))
+                    resultprice+=video_price[videoIndex]
 
 
-            while needFindVideo==True and videoIndex==0:
 
-                for i in range(len(video_name)):
 
-                    if (video_bench[i] != None and video_bench[i]>max and video_price[i]<=maxVideoPrice and video_price[i]>minVideoPrice):
-                        max = video_bench[i]
-                        videoIndex = i
+                    ################### Поиск Материнки
+                    max = 0
+                    motherIndex = 0
 
-                minVideoPrice-=100
 
-            maxVideoPrice+=50
+                    for i in range(len(mother_name)):
+                        if (cpu_socket[cpuIndex]==mother_socket[i] and mother_ramname[i]==ramType and mother_dnsrate[i]>max and mother_price[i]<=maxMotherPrice and mother_price[i]>=minMotherPrice):
+                            max = mother_dnsrate[i]
+                            motherIndex=i
 
+                    generateBuild[k].extend((mother_name[motherIndex], mother_ramname[motherIndex], mother_rampower[motherIndex], mother_price[motherIndex]))
+                    resultprice += mother_price[motherIndex]
 
-            generateBuild[k].extend((video_id[videoIndex],video_name[videoIndex],video_price[videoIndex]))
-            resultprice+=video_price[videoIndex]
+                    maxMotherPrice+=50
+                    #################### Поиск ОЗУ
+                    max=0
+                    ramIndex = 0
 
 
+                    for i in range(len(ram_name)):
+                        if ram_socket[i]==mother_ramname[motherIndex] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ((ram_count[i]>=2 and ram_memory[i]==recCountRAM and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_memory[i]==recCountRAM and ram_price[i]*2<=maxRamPrice)):
+                            max = ram_dnsrating[i]
+                            ramIndex = i
 
+                    if ram_count[ramIndex]==1:      # если в комплекте 1 планка, то удваиваем цену и количество т.к берём по две.
+                        generateBuild[k].extend((ram_name[ramIndex], ram_count[ramIndex]*2, ram_price[ramIndex]*2))
+                        resultprice += ram_price[ramIndex]
+                    else:
+                        generateBuild[k].extend((ram_name[ramIndex], ram_count[ramIndex], ram_price[ramIndex]))
+                        resultprice += ram_price[ramIndex]
 
-            ################### Поиск Материнки
-            max = 0
-            motherIndex = 0
+                    maxRamPrice+=50
 
+                    ###################### Поиск HDD
+                    max = 0
+                    hddIndex = 0
 
-            for i in range(len(mother_name)):
-                if (cpu_socket[cpuIndex]==mother_socket[i] and mother_ramname[i]==ramType and mother_dnsrate[i]>max and mother_price[i]<=maxMotherPrice and mother_price[i]>=minMotherPrice):
-                    max = mother_dnsrate[i]
-                    motherIndex=i
+                    for i in range(len(hdd_name)):
 
-            generateBuild[k].extend((mother_id[motherIndex],mother_name[motherIndex], mother_ramname[motherIndex], mother_rampower[motherIndex], mother_price[motherIndex]))
-            resultprice += mother_price[motherIndex]
+                        if (hdd_dnsrating[i] > max and hdd_price[i]<=maxHddPrice and hdd_size[i]==recCountHDD and hdd_price[i]>=minHddPrice):
+                            max = hdd_dnsrating[i]
+                            hddIndex = i
 
-            maxMotherPrice+=50
-            #################### Поиск ОЗУ
-            max=0
-            ramIndex = 0
+                    generateBuild[k].extend((hdd_name[hddIndex], hdd_size[hddIndex], hdd_price[hddIndex]))
+                    resultprice+=hdd_price[hddIndex]
 
+                    maxHddPrice+=50
 
-            for i in range(len(ram_name)):
-                if ram_socket[i]==mother_ramname[motherIndex] and ram_dnsrating[i]>max and ram_price[i]>=minRamPrice and ((ram_count[i]>=2 and ram_memory[i]==recCountRAM and ram_price[i]<=maxRamPrice) or (ram_count[i]==1 and ram_memory[i]==recCountRAM and ram_price[i]*2<=maxRamPrice)):
-                    max = ram_dnsrating[i]
-                    ramIndex = i
+                    ###################### Поиск SSD
+                    max = 0
+                    ssdIndex = 0
 
-            if ram_count[ramIndex]==1:      # если в комплекте 1 планка, то удваиваем цену и количество т.к берём по две.
-                generateBuild[k].extend((ram_id[ramIndex],ram_name[ramIndex], ram_count[ramIndex]*2, ram_price[ramIndex]*2))
-                resultprice += ram_price[ramIndex]
-            else:
-                generateBuild[k].extend((ram_id[ramIndex],ram_name[ramIndex], ram_count[ramIndex], ram_price[ramIndex]))
-                resultprice += ram_price[ramIndex]
+                    for i in range(len(ssd_name)):
+                        if (ssd_dnsrating[i] > max and ssd_size[i]>=recCountSSD and ssd_size[i]<=recCountSSD+60 and ssd_price[i] <= maxSSDPrice and ssd_price[i] >= minSSDPrice):
+                            max = ssd_dnsrating[i]
+                            ssdIndex = i
 
-            maxRamPrice+=50
+                    if maxSSDPrice!=0:
+                        generateBuild[k].extend((ssd_name[ssdIndex], ssd_price[ssdIndex]))
+                        resultprice += ssd_price[ssdIndex]
 
-            ###################### Поиск HDD
-            max = 0
-            hddIndex = 0
+                    maxSSDPrice+=50
+                    ####################### Поиск БП
 
-            for i in range(len(hdd_name)):
 
-                if (hdd_dnsrating[i] > max and hdd_price[i]<=maxHddPrice and hdd_size[i]==recCountHDD and hdd_price[i]>=minHddPrice):
-                    max = hdd_dnsrating[i]
-                    hddIndex = i
+                    max = 0
+                    blockIndex = 0
 
-            generateBuild[k].extend((hdd_id[hddIndex],hdd_name[hddIndex], hdd_size[hddIndex], hdd_price[hddIndex]))
-            resultprice+=hdd_price[hddIndex]
+                    for i in range(len(block_name)):
+                        if (block_dnsrating[i] > max and block_power[i]>=video_blockwatt[videoIndex] and block_power[i]<=video_blockwatt[videoIndex]+100 and block_price[i]<=maxBlockPrice and block_price[i]>=minBlockPrice):
+                            max = block_dnsrating[i]
+                            blockIndex = i
 
-            maxHddPrice+=50
+                    generateBuild[k].extend((block_name[blockIndex],block_power[blockIndex],block_price[blockIndex]))
+                    resultprice+=block_price[blockIndex]
 
-            ###################### Поиск SSD
-            max = 0
-            ssdIndex = 0
+                    maxBlockPrice+=50
+                    ######################## Поиск кулера
 
-            for i in range(len(ssd_name)):
-                if (ssd_dnsrating[i] > max and ssd_size[i]>=recCountSSD and ssd_size[i]<=recCountSSD+60 and ssd_price[i] <= maxSSDPrice and ssd_price[i] >= minSSDPrice):
-                    max = ssd_dnsrating[i]
-                    ssdIndex = i
+                    max = 0
+                    coolerIndex = 0
 
-            if maxSSDPrice!=0:
-                generateBuild[k].extend((ssd_id[ssdIndex],ssd_name[ssdIndex], ssd_price[ssdIndex]))
-                resultprice += ssd_price[ssdIndex]
+                    for i in range(len(cooler_name)):
+                        if (cooler_dnsrating[i] > max and cooler_watt[i]>=cpu_tdp[cpuIndex]+cpu_tdp[cpuIndex]*tdpIndex and cooler_price[i]<=maxcoolerprice and cooler_price[i]>=mincoolerprice): # учет TDP, рейтинга ДНС и диапозона цен
+                            max = cooler_dnsrating[i]
+                            coolerIndex = i
 
-            maxSSDPrice+=50
-            ####################### Поиск БП
+                    generateBuild[k].extend((cooler_name[coolerIndex], cooler_watt[coolerIndex], cooler_price[coolerIndex]))
+                    resultprice+=cooler_price[coolerIndex]
 
+                    maxcoolerprice+=50
 
-            max = 0
-            blockIndex = 0
 
-            for i in range(len(block_name)):
-                if (block_dnsrating[i] > max and block_power[i]>=video_blockwatt[videoIndex] and block_power[i]<=video_blockwatt[videoIndex]+100 and block_price[i]<=maxBlockPrice and block_price[i]>=minBlockPrice):
-                    max = block_dnsrating[i]
-                    blockIndex = i
+                    if maxVideoPrice*0.7>generalprice:      # если цена на любое комплектующее (н-р видеокарта) начинает превышать искомую цену, значит уходим в бесконечность и завершаем работу в текущей итерации.
+                        stopBuild=True
+                        break
 
-            generateBuild[k].extend((block_id[blockIndex],block_name[blockIndex],block_power[blockIndex],block_price[blockIndex]))
-            resultprice+=block_price[blockIndex]
+                if stopBuild == True:       # завершаем работу по поиску комплектующих для текущей комбинации
+                    break
 
-            maxBlockPrice+=50
-            ######################## Поиск кулера
 
-            max = 0
-            coolerIndex = 0
 
-            for i in range(len(cooler_name)):
-                if (cooler_dnsrating[i] > max and cooler_watt[i]>=cpu_tdp[cpuIndex]+cpu_tdp[cpuIndex]*tdpIndex and cooler_price[i]<=maxcoolerprice and cooler_price[i]>=mincoolerprice): # учет TDP, рейтинга ДНС и диапозона цен
-                    max = cooler_dnsrating[i]
-                    coolerIndex = i
+                k += 1
 
-            generateBuild[k].extend((cooler_id[coolerIndex],cooler_name[coolerIndex], cooler_watt[coolerIndex], cooler_price[coolerIndex]))
-            resultprice+=cooler_price[coolerIndex]
 
-            maxcoolerprice+=50
+                resultBuild.extend(generateBuild)
+                idResultBuild.append([cpu_id[cpuIndex],video_id[videoIndex],mother_id[motherIndex],ram_id[ramIndex],hdd_id[hddIndex],ssd_id[ssdIndex],block_id[blockIndex],cooler_id[blockIndex],comboIndex,resultprice])
+                print('Индекс',comboIndex,'Стоимость',resultprice,'Целевая',generalprice,'Сборка',generateBuild)
 
-        k += 1
+            comboIndex += 1
 
 
+            conn = psycopg2.connect(dbname='postgres', user='postgres',
+                                         password='29886622ss', host='localhost')
+            cursor = conn.cursor()
 
+            cursor.execute("set schema 'scraper'; truncate allbuilds RESTART IDENTITY")
 
+            rowName = []
+            cursor.execute(
+                "select column_name from information_schema.columns where table_name = 'allbuilds' and table_schema = 'scraper';")
 
-        #print("Итоговая сборка: ", generateBuild)
 
-        #print('Стоимость', resultprice, 'Цель', generalprice, 'Расхождение', resultprice / generalprice)
+            for i in cursor.fetchall():  # формирование списка столбцов    последнюю колонку не считаем, т.к там rating
+                if i[0]!='id':
+                    rowName.append(i[0])
 
 
 
-        # if ramIndex ==0 or motherIndex == 0 or cpuIndex==0 or hddIndex==0 or blockIndex==0 or ssdIndex==0 or videoIndex==0 or coolerIndex==0:
-        #     if generalprice<=40000 and ssdIndex==0:
-        #         continue
-        #     else:
-        #         print('STOP!!!!!!!!!!!!!')
-        #         print(ramIndex, motherIndex, cpuIndex, hddIndex, blockIndex, ssdIndex, videoIndex, coolerIndex)
-        #         break
+            d = {}  # dict словарь
+            for i in range(len(idResultBuild)):
+                for j in range(len(rowName)):
+                    d.update({rowName[j]: idResultBuild[i][j]})
 
-        resultBuild.extend(generateBuild)
-        
-    #     checkRam.append(ram_price[ramIndex]/maxRamPrice)
-    #     checkMother.append(mother_price[motherIndex]/maxMotherPrice)
-    #     checkCpu.append(cpu_price[cpuIndex]/maxCpuPrice)
-    #     checkhdd.append(hdd_price[hddIndex]/maxHddPrice)
-    #     checkBlock.append(block_price[blockIndex]/maxBlockPrice)
-    #     checkSsd.append(ssd_price[ssdIndex]/maxSSDPrice)
-    #     checkvideo.append(video_price[videoIndex]/maxVideoPrice)
-    #     checkcooler.append(cooler_price[coolerIndex]/maxcoolerprice)
-    #
-    # count = 0
-    #
-    # for i in checkMother:
-    #     if (i<0.85): count+=1
+                sql = "set schema 'scraper'; insert into allBuilds ({columns}) VALUES {values};".format(  # Инсёртим данные
+                    columns=', '.join(d.keys()),
+                    values=tuple(d.values())
+                )
 
+                cursor.execute(sql)
 
-
-    conn = psycopg2.connect(dbname='postgres', user='postgres',
-                                 password='29886622ss', host='localhost')
-    cursor = conn.cursor()
-
-    cursor.execute("set schema 'scraper'; truncate allbuilds RESTART IDENTITY")
-
-    rowName = []
-    cursor.execute(
-        "select column_name from information_schema.columns where table_name = 'allbuilds' and table_schema = 'scraper';")
-
-
-    for i in cursor.fetchall():  # формирование списка столбцов    последнюю колонку не считаем, т.к там rating
-        if i[0]!='id':
-            rowName.append(i[0])
-
-
-    d = {}  # dict словарь
-    for i in range(9):
-        d.update({rowName[i]: resultBuild[0][i]})
-        sql = "set schema 'scraper'; insert into allBuilds ({columns}) VALUES ({values});".format(  # Инсёртим данные
-            columns=', '.join(d.keys()),
-            values=tuple(d.values())
-        )
-        cursor.execute(sql)
-
-    conn.commit()
+            conn.commit()
 
 
 
